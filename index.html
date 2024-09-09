@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Good Old Days Meme Generator</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        #memeCanvas {
+            border: 2px solid #333;
+            margin-top: 20px;
+        }
+        .controls {
+            margin: 20px;
+            text-align: center;
+        }
+        button, input[type="file"], input[type="number"] {
+            padding: 10px;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+            border: 1px solid #333;
+        }
+        button {
+            background-color: #333;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Good Old Days Meme Generator</h1>
+    <div class="controls">
+        <input type="file" id="upload" accept="image/*" onchange="uploadImage(event)">
+        <br>
+        <label for="width">Width:</label>
+        <input type="number" id="width" placeholder="Enter width" value="275">
+        <label for="height">Height:</label>
+        <input type="number" id="height" placeholder="Enter height" value="350">
+        <br>
+        <label for="x">X Position:</label>
+        <input type="number" id="x" placeholder="Enter X position" value="160">
+        <label for="y">Y Position:</label>
+        <input type="number" id="y" placeholder="Enter Y position" value="75">
+        <br>
+        <button onclick="drawMeme()">Apply Changes</button>
+        <button onclick="downloadMeme()">Download Meme</button>
+    </div>
+    <canvas id="memeCanvas" width="600" height="500"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('memeCanvas');
+        const ctx = canvas.getContext('2d');
+        let uploadedImage = null;
+
+        // Load the frame image with transparent area
+        const frameImage = new Image();
+        frameImage.src = 'tem.png'; // Path to the frame image with transparency
+
+        // Function to draw the meme
+        function drawMeme() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+
+            if (uploadedImage) {
+                // Get the user-defined width, height, x, and y for the uploaded image
+                const manualWidth = parseInt(document.getElementById('width').value) || 275;
+                const manualHeight = parseInt(document.getElementById('height').value) || 350;
+                const manualX = parseInt(document.getElementById('x').value) || 160;
+                const manualY = parseInt(document.getElementById('y').value) || 75;
+
+                // Apply rotation transformation to align with the frame's angle
+                ctx.save();
+                ctx.translate(manualX + manualWidth / 2, manualY + manualHeight / 2); // Move to the image's center
+                ctx.rotate(-0.15); // Adjust the angle to match the frame's tilt
+                ctx.drawImage(uploadedImage, -manualWidth / 2, -manualHeight / 2, manualWidth, manualHeight);
+                ctx.restore();
+            }
+
+            // Draw the frame image on top
+            ctx.drawImage(frameImage, 0, 0, canvas.width, canvas.height);
+        }
+
+        // Preload the frame image and draw it initially
+        frameImage.onload = function() {
+            drawMeme(); // Draw the frame initially with no uploaded image
+        };
+
+        // Function to handle image upload
+        function uploadImage(event) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const img = new Image();
+                img.src = reader.result;
+                img.onload = function() {
+                    uploadedImage = img; // Store the uploaded image
+                    drawMeme(); // Draw meme with the uploaded image
+                };
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        // Function to download the generated meme
+        function downloadMeme() {
+            const link = document.createElement('a');
+            link.download = 'meme.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>
